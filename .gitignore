@@ -12,8 +12,8 @@ venv/
 env/
 .env.local
 
-# Streamlit
-.streamlit/
+# Streamlit — keep the project theme/config tracked, but never commit secrets.
+.streamlit/secrets.toml
 
 # IDE / editor
 .vscode/

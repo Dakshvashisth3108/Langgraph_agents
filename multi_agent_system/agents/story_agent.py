@@ -1,49 +1,107 @@
 """
 agents/story_agent.py
 ---------------------
-StoryAgent — generates short creative stories from a user prompt.
+StoryAgent — a creative storyteller that turns an idea into a short story.
 
-Like every other agent in this project, it is a plain Python function
-that takes a `state` dict (from LangGraph) and returns an updated
-`state` dict. Keeping agents as simple functions makes them easy to
-test in isolation and easy to wire into the graph.
+Public API
+----------
+* ``generate_story(user_input, history=None) -> str``
+    Standalone helper for scripts, tests, REPLs.
+* ``story_agent(state) -> dict``
+    LangGraph node wrapper used by ``graph/workflow.py``.
+
+The shared prompt-loading / LLM-calling / error-handling logic lives
+in :mod:`agents._base`. This file only configures a story-flavoured
+call to that pipeline.
 """
 
-from pathlib import Path
-from utils.llm import get_llm
+from __future__ import annotations
 
-PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "story_prompt.txt"
+from langchain_core.messages import BaseMessage
+
+from agents._base import run_agent
 
 
-def _load_prompt() -> str:
-    """Read the story prompt template from disk."""
-    return PROMPT_PATH.read_text(encoding="utf-8")
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+AGENT_NAME: str = "story_agent"
+PROMPT_FILE: str = "story_prompt.txt"
+
+# High temperature → varied, imaginative storytelling.
+# Token budget sized for a ~300-word story (≈400-500 tokens) with a buffer.
+STORY_TEMPERATURE: float = 0.9
+STORY_MAX_TOKENS: int = 800
+
+EMPTY_INPUT_MSG: str = "Please share a sentence or idea, and I'll write a story for you."
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+
+def generate_story(
+    user_input: str,
+    history: list[BaseMessage] | None = None,
+) -> str:
+    """
+    Turn a sentence or idea into a short creative story.
+
+    Parameters
+    ----------
+    user_input : str
+        A scenario or idea (e.g. "a robot who learns to paint").
+    history : list[BaseMessage] | None
+        Past conversation messages, enabling follow-ups like
+        "continue that story" or "make it sadder".
+
+    Returns
+    -------
+    str
+        A short (~200-300 word) story; or a friendly error message
+        if something failed.
+    """
+    return run_agent(
+        agent_name=AGENT_NAME,
+        prompt_file=PROMPT_FILE,
+        user_input=user_input,
+        history=history,
+        temperature=STORY_TEMPERATURE,
+        max_tokens=STORY_MAX_TOKENS,
+        empty_input_msg=EMPTY_INPUT_MSG,
+    )
+
+
+# ---------------------------------------------------------------------------
+# LangGraph node wrapper
+# ---------------------------------------------------------------------------
 
 
 def story_agent(state: dict) -> dict:
     """
-    LangGraph node that produces a short story.
+    LangGraph node — adapts ``generate_story`` to the graph's
+    ``state in → state out`` interface.
 
-    Parameters
-    ----------
-    state : dict
-        Shared workflow state. Expected key: `user_input` (str).
+    Reads
+    -----
+    state["user_input"] : str
+    state["history"]    : list[BaseMessage] | None
 
-    Returns
-    -------
-    dict
-        Updated state with the story stored in `response`.
+    Writes
+    ------
+    state["response"]       : str
+    state["selected_agent"] : "story_agent"
     """
-    user_input = state.get("user_input", "")
-    prompt_template = _load_prompt()
-    prompt = prompt_template.format(user_input=user_input)
-
-    # Higher temperature → more creative storytelling.
-    llm = get_llm(temperature=0.9)
-    result = llm.invoke(prompt)
-
     return {
         **state,
-        "response": result.content,
-        "agent": "story_agent",
+        "response": generate_story(
+            state.get("user_input", ""),
+            history=state.get("history", []),
+        ),
+        "selected_agent": AGENT_NAME,
     }
+
+
+__all__ = ["generate_story", "story_agent", "AGENT_NAME"]

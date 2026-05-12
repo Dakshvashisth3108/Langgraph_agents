@@ -52,19 +52,13 @@ HEALTH_CHECK_TIMEOUT: float = float(os.getenv("OLLAMA_HEALTH_TIMEOUT", "3.0"))
 
 
 # ---------------------------------------------------------------------------
-# Logging
+# Logger — format/level is configured centrally by
+# ``utils.logging_setup.setup_logging`` from the application entry
+# points. Keeping this module quiet until then avoids duplicate
+# handlers when Streamlit imports the project multiple times.
 # ---------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
-if not logger.handlers:
-    # Configure a sensible default so users see logs even without
-    # bespoke logging config. Apps can override this freely.
-    handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter("[%(asctime)s] %(levelname)s %(name)s: %(message)s")
-    )
-    logger.addHandler(handler)
-    logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
 
 
 # ---------------------------------------------------------------------------

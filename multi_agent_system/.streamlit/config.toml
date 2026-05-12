@@ -1,0 +1,18 @@
+# Streamlit configuration — picked up automatically when you run
+# ``streamlit run frontend/app.py`` from the project root.
+
+[server]
+# Hide the "Made with Streamlit" footer for a more app-like feel.
+headless = false
+runOnSave = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+# Subtle, modern palette that matches the colored agent badges.
+primaryColor = "#7c3aed"             # purple (MovieAgent accent)
+backgroundColor = "#0f172a"          # slate-900
+secondaryBackgroundColor = "#1e293b" # slate-800
+textColor = "#e2e8f0"                # slate-200
+font = "sans serif"
