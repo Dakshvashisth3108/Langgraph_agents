@@ -1,0 +1,30 @@
+# Claude Code worktrees and local config
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.env.local
+
+# Streamlit
+.streamlit/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Distribution / build
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
