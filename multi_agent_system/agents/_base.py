@@ -24,6 +24,7 @@ signals "internal: not a user-facing module".
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 
 from langchain_core.messages import BaseMessage
@@ -33,6 +34,18 @@ from utils.memory import format_history_for_prompt
 
 
 logger = logging.getLogger(__name__)
+
+
+# qwen3:8b sometimes wraps its internal reasoning in <think>...</think>
+# blocks even when we ask it not to think. Strip those before showing
+# the response to the user.
+_THINK_BLOCK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+
+
+def _strip_thinking(text: str) -> str:
+    """Remove qwen3 <think>...</think> reasoning blocks from a response."""
+    cleaned = _THINK_BLOCK_RE.sub("", text)
+    return cleaned.strip()
 
 
 # Resolve the prompts directory once at import time.
@@ -153,7 +166,9 @@ def run_agent(
         logger.exception("%s failed: %s", agent_name, exc)
         return f"⚠️ Something went wrong while running {agent_name}."
 
-    text = (result.content or "").strip()
+    # Strip any qwen3 <think>...</think> reasoning blocks that slipped
+    # through despite the /no_think directive in the prompt.
+    text = _strip_thinking(result.content or "")
     logger.info("%s ◀ %d chars", agent_name, len(text))
     return text
 

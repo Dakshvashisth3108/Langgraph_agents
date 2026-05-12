@@ -30,9 +30,11 @@ AGENT_NAME: str = "movie_agent"
 PROMPT_FILE: str = "movie_prompt.txt"
 
 # Low temperature → factual, deterministic movie summaries.
-# Token budget sized for ~120-word replies + the structured header.
+# Token budget is generous (qwen3:8b sometimes emits a few thinking
+# tokens even with /no_think; this leaves plenty of room for the
+# actual ~120-word reply plus the structured header).
 MOVIE_TEMPERATURE: float = 0.5
-MOVIE_MAX_TOKENS: int = 400
+MOVIE_MAX_TOKENS: int = 1024
 
 EMPTY_INPUT_MSG: str = "Please tell me which movie you'd like to know about."
 

@@ -30,9 +30,10 @@ AGENT_NAME: str = "story_agent"
 PROMPT_FILE: str = "story_prompt.txt"
 
 # High temperature → varied, imaginative storytelling.
-# Token budget sized for a ~300-word story (≈400-500 tokens) with a buffer.
+# Token budget generous enough for a ~300-word story even if qwen3:8b
+# leaks a few thinking tokens despite /no_think.
 STORY_TEMPERATURE: float = 0.9
-STORY_MAX_TOKENS: int = 800
+STORY_MAX_TOKENS: int = 1500
 
 EMPTY_INPUT_MSG: str = "Please share a sentence or idea, and I'll write a story for you."
 
