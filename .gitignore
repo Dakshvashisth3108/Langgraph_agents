@@ -26,5 +26,9 @@ build/
 dist/
 *.egg-info/
 
+# pptx build artifacts (keep the .pptx, ignore node_modules)
+multi_agent_system/docs/_build/node_modules/
+multi_agent_system/docs/_build/package-lock.json
+
 # Logs
 *.log
